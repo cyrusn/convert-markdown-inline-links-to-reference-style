@@ -16,7 +16,7 @@ def reorderReferences(self, edit):
     for i, ref in enumerate(references):
         regions = self.view.find_all(ref, sublime.LITERAL)
         regions.reverse()
-        pad = int(math.ceil(math.log(len(references), 10)))
+        pad = int(math.floor(math.log(len(references), 10)))+1
         for r in regions:
             self.view.replace(edit, r, "[#{:0{padding}d}#]".format(i+1, padding = pad))
 
