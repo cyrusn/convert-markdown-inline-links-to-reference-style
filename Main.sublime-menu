@@ -1,0 +1,12 @@
+[
+  {
+    "id": "edit",
+    "children": [
+      {
+        "caption": "Convert inline links to reference style",
+        "command": "mdrelink",
+        "id": "mdrelink"
+      }
+    ]
+  }
+]

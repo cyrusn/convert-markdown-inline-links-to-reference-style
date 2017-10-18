@@ -1,0 +1,6 @@
+[
+    {
+        "caption": "MarkdownLinks: Convert to Reference Style",
+        "command": "mdrelink"
+    }
+]
