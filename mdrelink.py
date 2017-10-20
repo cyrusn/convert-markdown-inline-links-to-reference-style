@@ -1,18 +1,17 @@
 import sublime, sublime_plugin, math
 
 def cleanup(self, edit):
-    redundantNewLine = self.view.find_all("\[.+?\]\: [http|\/|\.\/|\~\/].+?\n{2,}\[.+?\]\: [http|\/|\.\/|\~\/].+?\n")
+    redundantNewLine = self.view.find_all("\[\&.+?\]\: [http|\/|\.\/|\~\/].+?\n{2,}\[.+?\]\: [http|\/|\.\/|\~\/].+?\n")
 
     trimNewLine = []
-    self.view.find_all("(\[.+?\]\: [http|\/|\.\/|\~\/].+?\n)\n+(\[.+?\]\: [http|\/|\.\/|\~\/].+?\n)", sublime.IGNORECASE, "\\1\\2", trimNewLine)
+    self.view.find_all("(\[\&.+?\]\: [http|\/|\.\/|\~\/].+?\n)\n+(\[\&.+?\]\: [http|\/|\.\/|\~\/].+?\n)", sublime.IGNORECASE, "\\1\\2", trimNewLine)
     
     for i, r in enumerate(redundantNewLine):
         self.view.replace(edit, r, trimNewLine[i])
 
-
 def reorderReferences(self, edit):
     references = []
-    self.view.find_all("(\[\d+\])[^:]", sublime.IGNORECASE, "\\1", references)
+    self.view.find_all("(\[\&\d+\])[^:]", sublime.IGNORECASE, "\\1", references)
     for i, ref in enumerate(references):
         regions = self.view.find_all(ref, sublime.LITERAL)
         regions.reverse()
@@ -22,7 +21,7 @@ def reorderReferences(self, edit):
 
     # remove #
     hashedReferences = []
-    hashedRegion = self.view.find_all("\[\#(\d+)\#\]", sublime.IGNORECASE, "[\\1]", hashedReferences)
+    hashedRegion = self.view.find_all("\[\#(\d+)\#\]", sublime.IGNORECASE, "[&\\1]", hashedReferences)
     hashedReferences.reverse()
     hashedRegion.reverse()
     for i, r in enumerate(hashedRegion):
@@ -30,7 +29,7 @@ def reorderReferences(self, edit):
 
     # sort
     texts = []
-    newRegions = self.view.find_all("^(\[\d+\]:.+?\n)", sublime.IGNORECASE, "\\1", texts)
+    newRegions = self.view.find_all("^(\[\&\d+\]:.+?\n)", sublime.IGNORECASE, "\\1", texts)
     newRegions.reverse()
     for i, r in enumerate(newRegions):
         self.view.erase(edit, r)
@@ -38,11 +37,10 @@ def reorderReferences(self, edit):
     for address in sorted(texts):
         self.view.insert(edit, self.view.size(), address)
 
-
 class mdrelinkCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         oldlinks = []
-        self.view.find_all("^\s*(\[\d+\]):", sublime.IGNORECASE, "\\1", oldlinks)
+        self.view.find_all("^\s*(\[\&\d+\]):", sublime.IGNORECASE, "\\1", oldlinks)
 
         # get all link location
         links = self.view.find_all("\[.+?\](\([http|\/|\.\/|\~\/].+?\))")
@@ -64,12 +62,12 @@ class mdrelinkCommand(sublime_plugin.TextCommand):
         newnumbers = []
 
         for i, r in enumerate(links):
-            while '['+str(counter)+']' in oldlinks:
+            while '[&'+str(counter)+']' in oldlinks:
                 counter += 1
-            oldlinks.append('['+str(counter)+']')
+            oldlinks.append('[&'+str(counter)+']')
             # line = texts[i] +': '+ addresses.pop() + '\n'
-            line = '[' + str(counter) +']: '+ addresses.pop() + '\n'
-            newnumbers.append('['+str(counter)+']')
+            line = '[&' + str(counter) +']: '+ addresses.pop() + '\n'
+            newnumbers.append('[&'+str(counter)+']')
             self.view.insert(edit, self.view.size(), line)
 
         for r in reversed(links):
