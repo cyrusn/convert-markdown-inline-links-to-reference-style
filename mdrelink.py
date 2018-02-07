@@ -5,7 +5,7 @@ def cleanup(self, edit):
 
     trimNewLine = []
     self.view.find_all("(\[\&.+?\]\: [http|\/|\.\/|\~\/].+?\n)\n+(\[\&.+?\]\: [http|\/|\.\/|\~\/].+?\n)", sublime.IGNORECASE, "\\1\\2", trimNewLine)
-    
+
     for i, r in enumerate(redundantNewLine):
         self.view.replace(edit, r, trimNewLine[i])
 
@@ -33,9 +33,14 @@ def reorderReferences(self, edit):
     newRegions.reverse()
     for i, r in enumerate(newRegions):
         self.view.erase(edit, r)
-    
+
     for address in sorted(texts):
         self.view.insert(edit, self.view.size(), address)
+
+def formattedLinkReference(i, size):
+    pad = int(math.floor(math.log(size, 10)))+1
+    return "[&{:0{padding}d}]".format(i, padding = pad)
+
 
 class mdrelinkCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -58,17 +63,16 @@ class mdrelinkCommand(sublime_plugin.TextCommand):
         if len(links) > 0:
             self.view.insert(edit, self.view.size(), '\n\n')
 
-        counter = 1
+        counter = len(oldlinks) + 1
         newnumbers = []
 
+        print(counter)
         for i, r in enumerate(links):
-            while '[&'+str(counter)+']' in oldlinks:
-                counter += 1
-            oldlinks.append('[&'+str(counter)+']')
-            # line = texts[i] +': '+ addresses.pop() + '\n'
-            line = '[&' + str(counter) +']: '+ addresses.pop() + '\n'
-            newnumbers.append('[&'+str(counter)+']')
+            formatRefLink = formattedLinkReference(counter, len(oldlinks))
+            newnumbers.append(formatRefLink)
+            line = formatRefLink + ': '+ addresses.pop() + '\n'
             self.view.insert(edit, self.view.size(), line)
+            counter += 1
 
         for r in reversed(links):
             self.view.replace(edit, r, texts.pop() + newnumbers.pop())
