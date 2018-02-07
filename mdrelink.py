@@ -1,5 +1,16 @@
 import sublime, sublime_plugin, math
 
+def removeOphange(self, edit):
+    links = []
+    regions = self.view.find_all("(\[\&\d+\])[:]", sublime.IGNORECASE, "\\1", links)
+
+    for i, r in enumerate(links):
+        find = self.view.find_all(r, sublime.LITERAL)
+        if len(find) == 1:
+            line = self.view.line(regions[i])
+            self.view.erase(edit, line)
+
+
 def cleanup(self, edit):
     redundantNewLine = self.view.find_all("\[\&.+?\]\: [http|\/|\.\/|\~\/].+?\n{2,}\[.+?\]\: [http|\/|\.\/|\~\/].+?\n")
 
@@ -44,6 +55,8 @@ def formattedLinkReference(i, size):
 
 class mdrelinkCommand(sublime_plugin.TextCommand):
     def run(self, edit):
+        removeOphange(self, edit)
+
         oldlinks = []
         self.view.find_all("^\s*(\[\&\d+\]):", sublime.IGNORECASE, "\\1", oldlinks)
 
@@ -63,10 +76,10 @@ class mdrelinkCommand(sublime_plugin.TextCommand):
         if len(links) > 0:
             self.view.insert(edit, self.view.size(), '\n\n')
 
-        counter = len(oldlinks) + 1
+        # large enough to prevent same link id
+        counter = len(oldlinks)*100 + 1
         newnumbers = []
 
-        print(counter)
         for i, r in enumerate(links):
             formatRefLink = formattedLinkReference(counter, len(oldlinks))
             newnumbers.append(formatRefLink)
